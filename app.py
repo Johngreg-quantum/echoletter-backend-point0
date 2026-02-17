@@ -629,3 +629,6 @@ async def delivery_worker():
             print("Worker loop error:", repr(e))
 
         await asyncio.sleep(10)
+
+
+
