@@ -484,9 +484,10 @@ def home():
 
 
 # --- Auth API ---
-@app.post("/api/login")
-def login(payload: LoginIn, response: Response):
+@app.post("/api/register", response_model=UserOut)
+def register(payload: RegisterIn, response: Response):
     ensure_bcrypt_len(payload.password)
+
     email = payload.email.lower().strip()
 
     if get_user_by_email(email):
@@ -499,6 +500,7 @@ def login(payload: LoginIn, response: Response):
         (email, hash_password(payload.password)),
     )
     conn.commit()
+
     user_id = cur.lastrowid
     row = conn.execute("SELECT * FROM users WHERE id = ?", (user_id,)).fetchone()
     conn.close()
@@ -514,7 +516,6 @@ def login(payload: LoginIn, response: Response):
     )
 
     return dict(row)
-
 
 
 @app.post("/api/login")
