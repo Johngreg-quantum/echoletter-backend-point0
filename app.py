@@ -139,12 +139,11 @@ def init_db():
 # --- Models ---
 class RegisterIn(BaseModel):
     email: str = Field(min_length=5, max_length=255)
-    password: str = Field(min_length=6, max_length=200)
-
+    password: str = Field(min_length=6, max_length=72)
 
 class LoginIn(BaseModel):
     email: str = Field(min_length=5, max_length=255)
-    password: str = Field(min_length=6, max_length=200)
+    password: str = Field(min_length=6, max_length=72)
 
 
 class UserOut(BaseModel):
@@ -172,6 +171,10 @@ class LetterOut(BaseModel):
 
 
 # --- Auth helpers ---
+def ensure_bcrypt_len(pw: str):
+    if len(pw.encode("utf-8")) > 72:
+        raise HTTPException(status_code=400, detail="Password must be 72 bytes or less")
+
 def hash_password(pw: str) -> str:
     return pwd_context.hash(pw)
 
@@ -481,8 +484,9 @@ def home():
 
 
 # --- Auth API ---
-@app.post("/api/register", response_model=UserOut)
-def register(payload: RegisterIn, response: Response):
+@app.post("/api/login")
+def login(payload: LoginIn, response: Response):
+    ensure_bcrypt_len(payload.password)
     email = payload.email.lower().strip()
 
     if get_user_by_email(email):
