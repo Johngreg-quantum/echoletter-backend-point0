@@ -516,10 +516,14 @@ def login(payload: LoginIn, response: Response):
     return dict(row)
 
 
+
 @app.post("/api/login")
 def login(payload: LoginIn, response: Response):
+    ensure_bcrypt_len(payload.password)
+
     email = payload.email.lower().strip()
     user = get_user_by_email(email)
+
     if not user or not verify_password(payload.password, user["password_hash"]):
         raise HTTPException(status_code=401, detail="Invalid credentials")
 
@@ -532,12 +536,6 @@ def login(payload: LoginIn, response: Response):
         secure=False,
         max_age=SESSION_DAYS * 24 * 60 * 60,
     )
-    return {"ok": True}
-
-
-@app.post("/api/logout")
-def logout(response: Response):
-    response.delete_cookie(SESSION_COOKIE)
     return {"ok": True}
 
 
